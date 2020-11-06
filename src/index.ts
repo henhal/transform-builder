@@ -5,11 +5,32 @@ type Replace<T, K extends keyof T, V> = Omit<T, K> & Record<K, V>;
 const IDENTITY: Converter<any, any> = item => item;
 
 export interface TransformBuilder<T, U> {
+    /**
+     * Add a transform to pick the given keys from the object
+     * @param keys Zero or more property names to pick from the object
+     */
     pick<K extends keyof U>(...keys: K[]): Transform<T, Pick<U, K>>;
+
+    /**
+     * Add a transform to map the given property
+     * @param key Name of property
+     * @param converter Converter of values for the given property
+     */
     mapProperty<K extends keyof U, B>(key: K, converter: Converter<U[K], B>): Transform<T, Replace<U, K, B>>;
+
+    /**
+     * Add a transform to map each element in an array property.
+     * .mapArray(key, converter) is basically the same as .mapProperty(key, items => items.map(converter)).
+     * @param key Name of array property
+     * @param converter Converter of array elements
+     */
     mapArray<K extends keyof U, A extends ArrayElement<U[K]>, B>(key: K, converter: Converter<A, B>): Transform<T, Replace<U, K, B[]>>;
 }
 
+/**
+ * A buildable transform from one type to another.
+ * This is a function with properties to build additional sub-transforms.
+ */
 export type Transform<T, U> = Converter<T, U> & TransformBuilder<T, U>;
 
 function pick<T, K extends keyof T>(item: T, keys: K[]) {
